@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Products - TechGadgets{% endblock %}
+
+{% block content %}
+<div class="products-page">
+    <div class="container">
+        <!-- Breadcrumb Navigation -->
+        <nav class="breadcrumb">
+            <a href="{{ url_for('index') }}" class="breadcrumb-item">Home</a>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-item active">Products</span>
+        </nav>
+
+        <div class="page-header">
+            <h1>Our Products</h1>
+            <p>Find the perfect tech gadget for your needs</p>
+            {% if current_category %}
+            <p class="products-count">Showing {{ products|length }} products in {{ current_category.name }}</p>
+            {% else %}
+            <p class="products-count" id="products-count">Showing {{ products|length }} products</p>
+            {% endif %}
+        </div>
+
+        <div class="products-layout">
+            <!-- Sidebar with Filters -->
+            <aside class="products-sidebar">
+                <div class="category-filters">
+                    <div class="filter-group">
+                        <h3>Categories</h3>
+                        <div class="filter-options">
+                            <!-- All Categories Option -->
+                            {% set is_all_categories_active = not current_category and not request.args.get('category') %}
+                            <label class="filter-option category-filter {% if is_all_categories_active %}active{% endif %}">
+                                <input type="checkbox" value="" {% if is_all_categories_active %}checked{% endif %}>
+                                <span>All Categories</span>
+                            </label>
+
+                            <!-- Individual Category Options -->
+                            {% for category in categories %}
+                                {% set is_category_active = false %}
+                                {% if current_category and current_category.id == category.id %}
+                                    {% set is_category_active = true %}
+                                {% elif not current_category and request.args.get('category') %}
+                                    {% set request_category_id = request.args.get('category')|int %}
+                                    {% if request_category_id == category.id %}
+                                        {% set is_category_active = true %}
+                                    {% endif %}
+                                {% endif %}
+
+                                <label class="filter-option category-filter {% if is_category_active %}active{% endif %}">
+                                    <input type="checkbox" value="{{ category.id }}"
+                                           {% if is_category_active %}checked{% endif %}>
+                                    <span>{{ category.name }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <button class="clear-filters">Clear All Filters</button>
+                </div>
+            </aside>
+
+            <!-- Main Products Area -->
+            <main class="products-main">
+                <!-- Products Controls -->
+                <div class="products-controls">
+                    <div class="controls-row">
+                        <div class="search-box">
+                            <form method="GET" action="{{ url_for('products_page') }}">
+                                <input type="text" name="search" value="{{ search_query }}"
+                                       placeholder="Search products..." id="search-input">
+                            </form>
+                        </div>
+
+                        <div class="sort-options">
+                            <form method="GET" action="{{ url_for('products_page') }}" class="sort-form">
+                                {% if request.args.get('category') %}
+                                <input type="hidden" name="category" value="{{ request.args.get('category') }}">
+                                {% endif %}
+                                {% if request.args.get('search') %}
+                                <input type="hidden" name="search" value="{{ request.args.get('search') }}">
+                                {% endif %}
+
+                                <label>Sort by:</label>
+                                <select name="sort_by" onchange="this.form.submit()">
+                                    <option value="name" selected>Name A-Z</option>
+                                    <option value="date">Newest</option>
+                                    <option value="price">Price Low-High</option>
+                                    <option value="price_desc">Price High-Low</option>
+                                    <option value="rating">Highest Rated</option>
+                                </select>
+                            </form>
+                        </div>
+
+                        <div class="view-options">
+                            <a href="{{ url_for('advanced_search') }}" class="advanced-search-link">
+                                🔍 Advanced Search
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Active filters display -->
+                    <div class="active-filters" id="active-filters">
+                        {% if search_query %}
+                        <div class="active-filter">
+                            Search: "{{ search_query }}"
+                            <a href="{{ url_for('products_page', category=request.args.get('category')) }}" class="remove-filter">×</a>
+                        </div>
+                        {% endif %}
+                        {% if current_category %}
+                        <div class="active-filter">
+                            Category: {{ current_category.name }}
+                            <a href="{{ url_for('products_page', search=search_query) }}" class="remove-filter">×</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Products Grid -->
+                {% if products %}
+                <div class="products-grid">
+                    {% for product in products %}
+                    <div class="product-card" data-category-id="{{ product.category_id }}">
+                        <div class="product-image">
+                            <img src="{{ product.image_url }}" alt="{{ product.name }}" onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
+                        </div>
+                        <div class="product-info">
+                            <div class="product-category">{{ product.category_name }}</div>
+                            <h3 class="product-name">{{ product.name }}</h3>
+                            <p class="product-description">{{ product.description }}</p>
+
+                            <div class="product-rating">
+                                <div class="rating-stars" data-rating="{{ product.average_rating }}">
+                                    <!-- Stars will be rendered by JavaScript -->
+                                </div>
+                                <span class="review-count">({{ product.review_count }})</span>
+                            </div>
+
+                            <div class="product-price">${{ "%.2f"|format(product.price) }}</div>
+                            <div class="product-stock">{{ product.stock }} in stock</div>
+
+                            <div class="product-actions">
+                                <button class="add-to-cart-btn"
+                                        data-product-id="{{ product.id }}"
+                                        data-product-name="{{ product.name }}"
+                                        data-product-price="{{ product.price }}"
+                                        data-product-image="{{ product.image_url }}">
+                                    🛒 Add to Cart
+                                </button>
+
+                                {% if current_user.is_authenticated %}
+                                <form method="POST" action="{{ url_for('add_to_wishlist', product_id=product.id) }}" class="wishlist-form">
+                                    <button type="submit" class="wishlist-btn" title="Add to Wishlist">❤️</button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="no-products">
+                    <h3>No products found</h3>
+                    <p>Try adjusting your filters or search terms.</p>
+                    <button class="clear-filters cta-button">Clear All Filters</button>
+                </div>
+                {% endif %}
+            </main>
+        </div>
+    </div>
+</div>
+{% endblock %}

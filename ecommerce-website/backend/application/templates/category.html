@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}{{ current_category.name }} - TechGadgets{% endblock %}
+
+{% block content %}
+<div class="category-page">
+    <div class="container">
+        <!-- Breadcrumb Navigation -->
+        <nav class="breadcrumb">
+            <a href="{{ url_for('index') }}" class="breadcrumb-item">Home</a>
+            <span class="breadcrumb-separator">/</span>
+            <a href="{{ url_for('products_page') }}" class="breadcrumb-item">Products</a>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-item active">{{ current_category.name }}</span>
+        </nav>
+
+        <!-- Category Header -->
+        <div class="category-header">
+            <h1>{{ current_category.name }}</h1>
+            <p class="category-description">{{ current_category.description }}</p>
+            <p class="products-count" id="products-count">Showing {{ products|length }} products</p>
+        </div>
+
+
+        <!-- Quick Filters -->
+        <div class="quick-filters">
+            <!-- All Categories Button -->
+            <a href="{{ url_for('products_page') }}"
+               class="quick-filter {% if not current_category %}active{% endif %}">
+                All Categories
+            </a>
+
+            <!-- Individual Category Buttons -->
+            {% for category in categories %}
+            <a href="{{ url_for('category_page', slug=category.slug) }}"
+               class="quick-filter {% if current_category and current_category.id == category.id %}active{% endif %}"
+               data-category="{{ category.id }}">
+                {{ category.name }}
+            </a>
+            {% endfor %}
+        </div>
+
+        {% if products %}
+        <div class="products-grid">
+            {% for product in products %}
+            <div class="product-card" data-category-id="{{ product.category_id }}">
+                <div class="product-image">
+                    <img src="{{ product.image_url }}" alt="{{ product.name }}" onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
+                </div>
+                <div class="product-info">
+                    <div class="product-category">{{ product.category_name }}</div>
+                    <h3 class="product-name">{{ product.name }}</h3>
+                    <p class="product-description">{{ product.description }}</p>
+
+
+                    <div class="product-rating">
+                        <div class="rating-stars" data-rating="{{ product.average_rating }}">
+                            <!-- Stars will be rendered by JavaScript -->
+                        </div>
+                        <span class="review-count">({{ product.review_count }})</span>
+                    </div>
+
+                    <div class="product-price">${{ "%.2f"|format(product.price) }}</div>
+                    <div class="product-stock">{{ product.stock }} in stock</div>
+                    
+                    <!-- Add this inside product-card div, after add-to-cart button -->
+                    <div class="product-actions">
+                        <button class="add-to-cart-btn"
+                                data-product-id="{{ product.id }}"
+                                data-product-name="{{ product.name }}"
+                                data-product-price="{{ product.price }}"
+                                data-product-image="{{ product.image_url }}">
+                            🛒 Add to Cart
+                        </button>
+
+                        {% if current_user.is_authenticated %}
+                        <form method="POST" action="{{ url_for('add_to_wishlist', product_id=product.id) }}" class="wishlist-form">
+                            <button type="submit" class="wishlist-btn" title="Add to Wishlist">❤️</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-products">
+            <h3>No products found in this category</h3>
+            <p>Try browsing our other categories or check back later for new arrivals.</p>
+            <a href="{{ url_for('products_page') }}" class="cta-button">Browse All Products</a>
+        </div>
+        {% endif %}
+
+        <!-- Related Categories -->
+        <div class="related-products">
+            <h3>Explore Other Categories</h3>
+            <div class="categories-grid">
+                {% for category in categories %}
+                {% if category.id != current_category.id %}
+                <a href="{{ url_for('category_page', slug=category.slug) }}" class="category-card">
+                    <div class="category-image">
+                        {% if category.slug == 'smartphones' %}📱
+                        {% elif category.slug == 'laptops' %}💻
+                        {% elif category.slug == 'audio' %}🎧
+                        {% elif category.slug == 'wearables' %}⌚
+                        {% else %}🔧{% endif %}
+                    </div>
+                    <div class="category-info">
+                        <h3>{{ category.name }}</h3>
+                        <p>{{ category.description }}</p>
+                    </div>
+                </a>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

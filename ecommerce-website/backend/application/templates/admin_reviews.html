@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Review Moderation - TechGadgets{% endblock %}
+
+{% block content %}
+<div class="admin-reviews-page">
+    <div class="container">
+        <h1>📝 Review Moderation</h1>
+
+        <div class="reviews-tabs">
+            <button class="review-tab active" onclick="showTab('pending')">Pending Reviews ({{ pending_reviews|length }})</button>
+            <button class="review-tab" onclick="showTab('approved')">Approved Reviews</button>
+        </div>
+
+        <!-- Pending Reviews -->
+        <div id="pending-tab" class="tab-content">
+            {% if pending_reviews %}
+            <div class="reviews-list">
+                {% for review in pending_reviews %}
+                <div class="review-item">
+                    <div class="review-header">
+                        <div class="reviewer-info">
+                            <div class="reviewer-name">{{ review.username }}</div>
+                            <div class="review-date">{{ review.created_at.strftime('%B %d, %Y') }}</div>
+                            <div class="review-product">Product: {{ review.product_name }}</div>
+                        </div>
+                        <div class="rating-stars" data-rating="{{ review.rating }}">
+                            <!-- Stars will be rendered by JavaScript -->
+                        </div>
+                    </div>
+                    <h4 class="review-title">{{ review.title }}</h4>
+                    <p class="review-comment">{{ review.comment }}</p>
+                    <div class="review-actions">
+                        <a href="{{ url_for('moderate_review', review_id=review.id, action='approve') }}" class="btn primary">Approve</a>
+                        <a href="{{ url_for('moderate_review', review_id=review.id, action='reject') }}" class="btn secondary">Reject</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="no-reviews">
+                <h3>No pending reviews</h3>
+                <p>All reviews have been moderated.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Approved Reviews -->
+        <div id="approved-tab" class="tab-content" style="display: none;">
+            {% if approved_reviews %}
+            <div class="reviews-list">
+                {% for review in approved_reviews %}
+                <div class="review-item">
+                    <div class="review-header">
+                        <div class="reviewer-info">
+                            <div class="reviewer-name">{{ review.username }}</div>
+                            <div class="review-date">{{ review.created_at.strftime('%B %d, %Y') }}</div>
+                            <div class="review-product">Product: {{ review.product_name }}</div>
+                        </div>
+                        <div class="rating-stars" data-rating="{{ review.rating }}">
+                            <!-- Stars will be rendered by JavaScript -->
+                        </div>
+                    </div>
+                    <h4 class="review-title">{{ review.title }}</h4>
+                    <p class="review-comment">{{ review.comment }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="no-reviews">
+                <h3>No approved reviews yet</h3>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function showTab(tabName) {
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.style.display = 'none';
+    });
+
+    // Remove active class from all tabs
+    document.querySelectorAll('.review-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+
+    // Show selected tab and set active class
+    document.getElementById(tabName + '-tab').style.display = 'block';
+    event.currentTarget.classList.add('active');
+}
+</script>
+{% endblock %}

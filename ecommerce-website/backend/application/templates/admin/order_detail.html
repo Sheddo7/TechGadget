@@ -1,0 +1,131 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Order #{{ order.order_number }} - TechGadgets{% endblock %}
+{% block page_title %}Order #{{ order.order_number }}{% endblock %}
+
+{% block content %}
+<div class="order-detail">
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+        <!-- Order Items -->
+        <div class="data-table">
+            <div style="padding: 1rem; border-bottom: 1px solid #ecf0f1; background: #34495e; color: white;">
+                <h3 style="margin: 0;">Order Items</h3>
+            </div>
+            <div style="padding: 0;">
+                {% for item in order_items %}
+                <div style="display: flex; padding: 1rem; border-bottom: 1px solid #ecf0f1; align-items: center;">
+                    <img src="{{ item.image_url or 'https://via.placeholder.com/60x60?text=No+Image' }}"
+                         alt="{{ item.product_name }}"
+                         style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px; margin-right: 1rem;">
+                    <div style="flex: 1;">
+                        <strong>{{ item.product_name }}</strong>
+                        <div style="color: #7f8c8d; font-size: 0.9rem;">
+                            Quantity: {{ item.quantity }} × ${{ "%.2f"|format(item.product_price) }}
+                        </div>
+                    </div>
+                    <div style="font-weight: bold; color: #2c3e50;">
+                        ${{ "%.2f"|format(item.total_price) }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div style="padding: 1rem; background: #f8f9fa; border-top: 1px solid #ecf0f1;">
+                <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 1.1rem;">
+                    <span>Total:</span>
+                    <span>${{ "%.2f"|format(order.total_amount) }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Details -->
+        <div>
+            <!-- Status Update -->
+            <div class="data-table" style="margin-bottom: 1rem;">
+                <div style="padding: 1rem; border-bottom: 1px solid #ecf0f1; background: #34495e; color: white;">
+                    <h3 style="margin: 0;">Update Status</h3>
+                </div>
+                <div style="padding: 1rem;">
+                    <form method="POST" action="{{ url_for('admin_update_order_status', order_id=order.id) }}">
+                        <select name="status" style="width: 100%; padding: 0.5rem; margin-bottom: 1rem;">
+                            {% set statuses = [
+                                ('pending', 'Pending'),
+                                ('processing', 'Processing'),
+                                ('shipped', 'Shipped'),
+                                ('completed', 'Completed'),
+                                ('cancelled', 'Cancelled')
+                            ] %}
+                            {% for status_value, status_label in statuses %}
+                                <option value="{{ status_value }}"
+                                    {% if order.status == status_value %}selected{% endif %}>
+                                    {{ status_label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn primary" style="width: 100%;">Update Status</button>
+                    </form>
+
+                    <!-- Debug info (remove in production) -->
+                    <div style="margin-top: 1rem; padding: 0.5rem; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px; font-size: 0.8rem;">
+                        <strong>Debug Info:</strong><br>
+                        Current Status: "{{ order.status }}"<br>
+                        Status Type: {{ order.status.__class__.__name__ }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer Info -->
+            <div class="data-table" style="margin-bottom: 1rem;">
+                <div style="padding: 1rem; border-bottom: 1px solid #ecf0f1; background: #34495e; color: white;">
+                    <h3 style="margin: 0;">Customer Info</h3>
+                </div>
+                <div style="padding: 1rem;">
+                    <p><strong>Name:</strong> {{ order.username }}</p>
+                    <p><strong>Email:</strong> {{ order.email }}</p>
+                    <p><strong>Order Date:</strong> {{ order.created_at[:16] }}</p>
+                    <p><strong>Current Status:</strong>
+                        <!-- Fixed: Use a cleaner approach with a variable -->
+                        {% set status_color = '#e2e3e5' %}
+                        {% if order.status == 'completed' %}
+                            {% set status_color = '#d4edda' %}
+                        {% elif order.status == 'cancelled' %}
+                            {% set status_color = '#f8d7da' %}
+                        {% elif order.status == 'processing' %}
+                            {% set status_color = '#fff3cd' %}
+                        {% elif order.status == 'shipped' %}
+                            {% set status_color = '#cce7ff' %}
+                        {% endif %}
+
+                        <p><strong>Current Status:</strong>
+                            {% if order.status == 'completed' %}
+                                <span style="padding: 0.25rem 0.5rem; background: #d4edda; border-radius: 4px; font-weight: bold;">{{ order.status|title }}</span>
+                            {% elif order.status == 'cancelled' %}
+                                <span style="padding: 0.25rem 0.5rem; background: #f8d7da; border-radius: 4px; font-weight: bold;">{{ order.status|title }}</span>
+                            {% elif order.status == 'processing' %}
+                                <span style="padding: 0.25rem 0.5rem; background: #fff3cd; border-radius: 4px; font-weight: bold;">{{ order.status|title }}</span>
+                            {% elif order.status == 'shipped' %}
+                                <span style="padding: 0.25rem 0.5rem; background: #cce7ff; border-radius: 4px; font-weight: bold;">{{ order.status|title }}</span>
+                            {% else %}
+                                <span style="padding: 0.25rem 0.5rem; background: #e2e3e5; border-radius: 4px; font-weight: bold;">{{ order.status|title }}</span>
+                            {% endif %}
+                        </p>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Shipping Info -->
+            <div class="data-table">
+                <div style="padding: 1rem; border-bottom: 1px solid #ecf0f1; background: #34495e; color: white;">
+                    <h3 style="margin: 0;">Shipping Address</h3>
+                </div>
+                <div style="padding: 1rem;">
+                    <p style="white-space: pre-line;">{{ order.shipping_address }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top: 2rem; text-align: center;">
+        <a href="{{ url_for('admin_orders') }}" class="btn secondary">← Back to Orders</a>
+    </div>
+</div>
+{% endblock %}
