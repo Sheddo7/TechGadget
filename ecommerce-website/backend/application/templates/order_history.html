@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Order History - TechGadgets{% endblock %}
+
+{% block content %}
+<div class="order-history-page">
+    <div class="container">
+        <h1>📋 Order History</h1>
+
+        {% if orders %}
+        <div class="orders-list">
+            {% for order in orders %}
+            <div class="order-card">
+                <div class="order-header">
+                    <div class="order-info">
+                        <h3>Order #{{ order.order_number }}</h3>
+                        <p class="order-date">Placed on {{ order.created_at }}</p>
+                    </div>
+                    <div class="order-status">
+                        <span class="status-badge {{ order.status }}">{{ order.status|title }}</span>
+                    </div>
+                </div>
+
+                <div class="order-details">
+                    <div class="detail">
+                        <span class="label">Total Amount:</span>
+                        <span class="value">${{ "%.2f"|format(order.total_amount) }}</span>
+                    </div>
+                    <div class="detail">
+                        <span class="label">Payment Method:</span>
+                        <span class="value">{{ order.payment_method|replace('_', ' ')|title }}</span>
+                    </div>
+                </div>
+
+                <div class="order-actions">
+                    <a href="{{ url_for('order_details', order_id=order.id) }}" class="btn secondary">
+                        View Details
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">📦</div>
+            <h2>No Orders Yet</h2>
+            <p>You haven't placed any orders yet. Start shopping to see your order history here!</p>
+            <a href="{{ url_for('products_page') }}" class="btn primary">Start Shopping</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Order Confirmation - TechGadgets{% endblock %}
+
+{% block content %}
+<div class="confirmation-page">
+    <div class="container">
+        <div class="confirmation-card">
+            <div class="confirmation-header">
+                <div class="success-icon">✅</div>
+                <h1>Order Confirmed!</h1>
+                <p class="order-number">Order #{{ order.order_number }}</p>
+            </div>
+
+            <div class="confirmation-details">
+                <div class="detail-section">
+                    <h3>📦 Order Summary</h3>
+                    <div class="order-items">
+                        {% for item in order_items %}
+                        <div class="order-item">
+                            <img src="{{ item.image_url or 'https://via.placeholder.com/80x80?text=No+Image' }}" alt="{{ item.product_name }}">
+                            <div class="item-info">
+                                <h4>{{ item.product_name }}</h4>
+                                <p>Quantity: {{ item.quantity }}</p>
+                                <p class="price">${{ "%.2f"|format(item.product_price) }} each</p>
+                            </div>
+                            <div class="item-total">
+                                ${{ "%.2f"|format(item.total_price) }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3>💰 Order Total</h3>
+                    <div class="total-breakdown">
+                        <div class="total-line">
+                            <span>Items:</span>
+                            <span>${{ "%.2f"|format(order.total_amount) }}</span>
+                        </div>
+                        <div class="total-line grand-total">
+                            <span>Total:</span>
+                            <span>${{ "%.2f"|format(order.total_amount) }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3>🚚 Shipping Information</h3>
+                    <div class="address-info">
+                        <p>{{ order.shipping_address|replace('\n', '<br>')|safe }}</p>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3>💳 Payment Method</h3>
+                    <p>{{ order.payment_method|replace('_', ' ')|title }}</p>
+                </div>
+            </div>
+
+            <div class="confirmation-actions">
+                <a href="{{ url_for('order_details', order_id=order.id) }}" class="btn primary">
+                    View Order Details
+                </a>
+                <a href="{{ url_for('products_page') }}" class="btn secondary">
+                    Continue Shopping
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

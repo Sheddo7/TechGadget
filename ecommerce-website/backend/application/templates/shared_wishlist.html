@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}{{ wishlist.name }} - Shared Wishlist - TechGadgets{% endblock %}
+
+{% block content %}
+<div class="shared-wishlist-page">
+    <div class="container">
+        <div class="wishlist-header">
+            <h1>❤️ {{ wishlist.name }}</h1>
+            <div class="wishlist-meta">
+                <p>Shared by: <strong>{{ wishlist.username }}</strong></p>
+            </div>
+        </div>
+
+        {% if items %}
+        <div class="products-grid">
+            {% for item in items %}
+            <div class="product-card">
+                <div class="product-image">
+                    <img src="{{ item.image_url }}" alt="{{ item.name }}"
+                         onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
+                </div>
+                <div class="product-info">
+                    <h3 class="product-name">{{ item.name }}</h3>
+                    <div class="product-price">${{ "%.2f"|format(item.price) }}</div>
+                    <div class="product-stock {% if item.stock > 0 %}in-stock{% else %}out-of-stock{% endif %}">
+                        {{ item.stock }} in stock
+                    </div>
+                    {% if current_user.is_authenticated %}
+                    <div class="shared-wishlist-actions">
+                        <button class="btn primary add-to-cart-btn"
+                                data-product-id="{{ item.product_id }}"
+                                data-product-name="{{ item.name }}"
+                                data-product-price="{{ item.price }}"
+                                data-product-image="{{ item.image_url }}"
+                                {% if item.stock == 0 %}disabled{% endif %}>
+                            🛒 Add to Cart
+                        </button>
+                        <form method="POST" action="{{ url_for('add_to_wishlist', product_id=item.product_id) }}">
+                            <button type="submit" class="btn secondary">❤️ Add to My Wishlist</button>
+                        </form>
+                    </div>
+                    {% else %}
+                    <div class="login-prompt">
+                        <a href="{{ url_for('login') }}" class="btn primary">Login to Add to Cart</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-wishlist">
+            <h3>This wishlist is empty</h3>
+            <p>No products in this shared wishlist.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.shared-wishlist-page {
+    padding: 2rem 0;
+}
+
+.wishlist-meta {
+    color: #7f8c8d;
+    margin-top: 0.5rem;
+}
+
+.shared-wishlist-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    flex-direction: column;
+}
+
+.login-prompt {
+    margin-top: 1rem;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .shared-wishlist-actions {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}

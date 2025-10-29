@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Shopping Cart - TechGadgets{% endblock %}
+
+{% block content %}
+<div class="cart-page">
+    <div class="container">
+        <h1>🛒 Shopping Cart</h1>
+
+        <div class="cart-container">
+            <div class="cart-items" id="cart-items">
+                {% if cart_items %}
+                    <!-- Server-side cart will be replaced by JavaScript with localStorage cart -->
+                    {% for item in cart_items %}
+                    {% set item_total = item.price * item.quantity %}
+                    <div class="cart-item" id="cart-item-{{ item.product_id }}">
+                        <div class="cart-item-image">
+                            <img src="{{ item.image_url }}" alt="{{ item.name }}" onerror="this.src='https://via.placeholder.com/100x100?text=No+Image'">
+                        </div>
+                        <div class="cart-item-details">
+                            <h3>{{ item.name }}</h3>
+                            <p class="item-price">Price: ${{ "%.2f"|format(item.price) }}</p>
+                            <div class="quantity-controls">
+                                <button class="quantity-btn" data-action="decrease" data-product-id="{{ item.product_id }}">-</button>
+                                <span class="quantity">Quantity: {{ item.quantity }}</span>
+                                <button class="quantity-btn" data-action="increase" data-product-id="{{ item.product_id }}">+</button>
+                            </div>
+                            <p class="item-total">Total: ${{ "%.2f"|format(item_total) }}</p>
+                            <button class="remove-btn" data-product-id="{{ item.product_id }}">
+                                <span class="remove-text">Remove</span>
+                                <span class="removing-text" style="display: none;">Removing...</span>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-cart-message">
+                        <h3>Your cart is empty</h3>
+                        <p>Add some products to get started!</p>
+                        <a href="{{ url_for('products_page') }}" class="cta-button">Browse Products</a>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="cart-summary">
+                <h3>Order Summary</h3>
+
+                <div class="summary-line">
+                    <span>Subtotal:</span>
+                    <span id="summary-subtotal">
+                        {% if cart_items %}
+                            ${% set subtotal = cart_items | sum(attribute='price') %}{{ "%.2f"|format(subtotal) }}
+                        {% else %}
+                            $0.00
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="summary-line">
+                    <span>Shipping:</span>
+                    <span id="summary-shipping">
+                        {% if cart_items and (cart_items | sum(attribute='price')) > 50 %}
+                            FREE
+                        {% else %}
+                            $5.99
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="summary-line total">
+                    <span>Total:</span>
+                    <span id="summary-total">
+                        {% if cart_items %}
+                            {% set subtotal = cart_items | sum(attribute='price') %}
+                            {% set shipping = 0 if subtotal > 50 else 5.99 %}
+                            ${{ "%.2f"|format(subtotal + shipping) }}
+                        {% else %}
+                            $0.00
+                        {% endif %}
+                    </span>
+                </div>
+
+                <!-- Checkout Button -->
+                {% if cart_items %}
+                <a href="{{ url_for('checkout') }}" class="checkout-btn" id="checkout-btn-active">
+                    🛍️ Proceed to Checkout
+                </a>
+                {% else %}
+                <button class="checkout-btn" disabled style="background: #bdc3c7; cursor: not-allowed;">
+                    🛍️ Proceed to Checkout
+                </button>
+                {% endif %}
+
+                <!-- Debug buttons -->
+                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee; text-align: center;">
+                    <small style="color: #666; display: block; margin-bottom: 0.5rem;">Debug Tools:</small>
+                    <button onclick="showCart()" style="background: #3498db; color: white; border: none; padding: 0.3rem 0.6rem; border-radius: 3px; font-size: 0.8rem; margin: 0.2rem; cursor: pointer;">Show Cart</button>
+                    <button onclick="clearCart()" style="background: #e74c3c; color: white; border: none; padding: 0.3rem 0.6rem; border-radius: 3px; font-size: 0.8rem; margin: 0.2rem; cursor: pointer;">Clear Cart</button>
+                    <button onclick="syncCart()" style="background: #27ae60; color: white; border: none; padding: 0.3rem 0.6rem; border-radius: 3px; font-size: 0.8rem; margin: 0.2rem; cursor: pointer;">Sync Cart</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Enhanced removal handling for cart page
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🛒 Cart page loaded');
+
+    // Display localStorage cart instead of server cart
+    displayLocalStorageCart();
+});
+</script>
+{% endblock %}

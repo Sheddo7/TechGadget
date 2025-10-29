@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Public Wishlists - TechGadgets{% endblock %}
+
+{% block content %}
+<div class="public-wishlists-page">
+    <div class="container">
+        <h1>🌐 Public Wishlists</h1>
+        <p class="page-description">Discover wishlists shared by other users</p>
+
+        {% if wishlists %}
+        <div class="wishlists-grid">
+            {% for wishlist in wishlists %}
+            <div class="wishlist-card">
+                <div class="wishlist-header">
+                    <h3>{{ wishlist.name }}</h3>
+                    <span class="item-count">{{ wishlist.item_count }} items</span>
+                </div>
+                <div class="wishlist-owner">
+                    <strong>By:</strong> {{ wishlist.username }}
+                </div>
+                <div class="wishlist-actions">
+                    <a href="{{ url_for('view_shared_wishlist', wishlist_id=wishlist.id) }}" class="btn primary">
+                        View Wishlist
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <h3>No public wishlists yet</h3>
+            <p>Be the first to share your wishlist!</p>
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('wishlist') }}" class="btn primary">Go to My Wishlist</a>
+            {% else %}
+            <a href="{{ url_for('login') }}" class="btn primary">Login to Create Wishlist</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.public-wishlists-page {
+    padding: 2rem 0;
+}
+
+.page-description {
+    color: #7f8c8d;
+    margin-bottom: 2rem;
+}
+
+.wishlists-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.wishlist-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.wishlist-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.wishlist-header h3 {
+    margin: 0;
+    color: #2c3e50;
+}
+
+.item-count {
+    background: #3498db;
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.wishlist-owner {
+    color: #7f8c8d;
+    margin-bottom: 1rem;
+}
+
+.wishlist-actions {
+    text-align: center;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #7f8c8d;
+}
+
+.empty-state h3 {
+    margin-bottom: 1rem;
+    color: #2c3e50;
+}
+</style>
+{% endblock %}
